@@ -41,33 +41,33 @@ node(nodeName) {
         }
     }
 
-    stage('prepareTestStages') {
-        /* Prepare pipeline stages using RHCEPH version */
-        rhcephVersion = "${params.rhcephVersion}" ?: ""
-        buildType = "${params.buildType}" ?: ""
-        buildArtifacts = "${params.buildArtifacts}" ?: [:]
+//     stage('prepareTestStages') {
+//         /* Prepare pipeline stages using RHCEPH version */
+//         rhcephVersion = "${params.rhcephVersion}" ?: ""
+//         buildType = "${params.buildType}" ?: ""
+//         buildArtifacts = "${params.buildArtifacts}" ?: [:]
 
-        if ( buildArtifacts ){
-            buildArtifacts = readJSON text: "${buildArtifacts}"
-        }
+//         if ( buildArtifacts ){
+//             buildArtifacts = readJSON text: "${buildArtifacts}"
+//         }
 
-        if ( (! rhcephVersion?.trim()) && (! buildType?.trim()) ) {
-            error "Required Prameters are not provided.."
-        }
+//         if ( (! rhcephVersion?.trim()) && (! buildType?.trim()) ) {
+//             error "Required Prameters are not provided.."
+//         }
 
-        testStages = sharedLib.fetchStages(
-            "--build ${buildType} --cloud ibmc --xunit-results",
-            buildPhase,
-            testResults,
-            rhcephVersion
-        )
+//         testStages = sharedLib.fetchStages(
+//             "--build ${buildType} --cloud ibmc --xunit-results",
+//             buildPhase,
+//             testResults,
+//             rhcephVersion
+//         )
 
-        if ( testStages.isEmpty() ) {
-            currentBuild.result = "ABORTED"
-            error "No test stages found.."
-        }
-        currentBuild.description = "${params.rhcephVersion} - ${buildPhase}"
-    }
+//         if ( testStages.isEmpty() ) {
+//             currentBuild.result = "ABORTED"
+//             error "No test stages found.."
+//         }
+//         currentBuild.description = "${params.rhcephVersion} - ${buildPhase}"
+//     }
 
 //     parallel testStages
 
