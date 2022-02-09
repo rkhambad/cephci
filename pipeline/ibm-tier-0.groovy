@@ -21,12 +21,12 @@ node(nodeName) {
                 doGenerateSubmoduleConfigurations: false,
                 extensions: [
                     [
-                        $class: 'CloneOption',
-                        shallow: true,
-                        noTags: true,
-                        reference: '',
-                        depth: 1
-                    ],
+                    $class: 'SubmoduleOption',
+                    disableSubmodules: false,
+                    parentCredentials: false,
+                    recursiveSubmodules: true,
+                    reference: '',
+                    trackingSubmodules: false],
                     [$class: 'CleanBeforeCheckout'],
                 ],
                 submoduleCfg: [],
