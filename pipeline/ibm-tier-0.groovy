@@ -36,6 +36,7 @@ node(nodeName) {
             ])
 
             // prepare the node
+            println "preparing node testing....."
             sharedLib = load("${env.WORKSPACE}/pipeline/vars/lib.groovy")
             sharedLib.prepareIbmNode()
         }
