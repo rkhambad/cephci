@@ -22,7 +22,7 @@ node(nodeName) {
                 extensions: [
                     [
                         $class: 'CloneOption',
-                        shallow: false,
+                        shallow: true,
                         noTags: true,
                         reference: '',
                         depth: 1
