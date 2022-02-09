@@ -5,6 +5,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from time import sleep
 from typing import Any, Dict, List, Optional
+from requests.exceptions import ReadTimeout
 
 from ibm_cloud_networking_services import DnsSvcsV1
 from ibm_cloud_networking_services.dns_svcs_v1 import (
@@ -16,6 +17,7 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_vpc import VpcV1  # noqa
 
 from utility.log import Log
+from utility.retry import retry
 
 from .exceptions import NodeDeleteFailure, NodeError, ResourceNotFound
 
@@ -141,6 +143,7 @@ class CephVMNodeIBM:
         return self.node["primary_network_interface"]["primary_ipv4_address"]
 
     @property
+    @retry(ReadTimeout, tries=5, delay=10)
     def floating_ips(self) -> List[str]:
         """Return the list of floating IP's"""
         if not self.node:
@@ -181,6 +184,7 @@ class CephVMNodeIBM:
         return self.node["name"]
 
     @property
+    @retry(ReadTimeout, tries=5, delay=10)
     def volumes(self) -> List:
         """Return the list of storage volumes attached to the node."""
         if self.node is None:
@@ -197,6 +201,7 @@ class CephVMNodeIBM:
         return volume_attachments
 
     @property
+    @retry(ReadTimeout, tries=5, delay=10)
     def subnet(self) -> str:
         """Return the subnet information."""
         subnet_details = self.service.get_subnet(
@@ -230,6 +235,7 @@ class CephVMNodeIBM:
         """Return the provider type."""
         return "ibmc"
 
+    @retry(ReadTimeout, tries=5, delay=10)
     def create(
         self,
         node_name: str,
@@ -425,6 +431,7 @@ class CephVMNodeIBM:
             LOG.error(be, exc_info=True)
             raise NodeError(f"Unknown error. Failed to create VM with name {node_name}")
 
+    @retry(ReadTimeout, tries=5, delay=10)
     def delete(self, zone_name: Optional[str] = None) -> None:
         """
         Removes the VSI instance from the platform along with its DNS record.
@@ -467,6 +474,7 @@ class CephVMNodeIBM:
         LOG.debug(resp.get_result())
         raise NodeDeleteFailure(f"Failed to remove {node_name}")
 
+    @retry(ReadTimeout, tries=5, delay=10)
     def wait_until_vm_state_running(self, instance_id: str) -> None:
         """
         Waits until the VSI moves to a running state within the specified time.
@@ -508,6 +516,7 @@ class CephVMNodeIBM:
 
         raise NodeError(f"{node_details['name']} is in {node_details['status']} state.")
 
+    @retry(ReadTimeout, tries=5, delay=10)
     def remove_dns_records(self, zone_name):
         """
         Remove the DNS records associated this VSI.
