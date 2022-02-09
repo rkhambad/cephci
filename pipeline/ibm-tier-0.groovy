@@ -17,7 +17,7 @@ node(nodeName) {
             if (env.WORKSPACE) { sh script: "sudo rm -rf * .venv" }
             checkout([
                 $class: 'GitSCM',
-                branches: [[name: 'origin/master']],
+                branches: [[name: 'refs/remotes/origin/test_tier0']],
                 doGenerateSubmoduleConfigurations: false,
                 extensions: [
                     [
