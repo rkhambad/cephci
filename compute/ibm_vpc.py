@@ -132,6 +132,7 @@ class CephVMNodeIBM:
 
         if node:
             self.node = node
+        print(f"node detail is {self.node}")
 
     # properties
 
@@ -188,6 +189,7 @@ class CephVMNodeIBM:
 
         # Removing boot volume from the list
         volume_attachments = []
+        print(f"self node1 is {self.node}")
         for i in self.node["volume_attachments"]:
             volume_detail = self.service.get_volume(i["volume"]["id"])
             for vol in volume_detail.get_result()["volume_attachments"]:
