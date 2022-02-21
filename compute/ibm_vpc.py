@@ -189,16 +189,11 @@ class CephVMNodeIBM:
 
         # Removing boot volume from the list
         volume_attachments = []
-        volume_attachments1 = []
+        print(f"node name is {node_name}")
         for i in self.node["volume_attachments"]:
             if "ceph-ci-" in i["volume"]["name"]:
                 volume_attachments.append(i)
-            volume_detail = self.service.get_volume(i["volume"]["id"])
-            for vol in volume_detail.get_result()["volume_attachments"]:
-                if vol["type"] == "data":
-                    volume_attachments1.append(vol)
         print(f"volume attachment is:{volume_attachments}")
-        print(f"volume attachment1 is:{volume_attachments}")
         return volume_attachments
 
     @property
