@@ -189,7 +189,8 @@ class CephVMNodeIBM:
 
         # Removing boot volume from the list
         volume_attachments = []
-        #print(f"node name is {node_name}")
+        node_name1 = self.node["name"]
+        print(f"node name is {node_name1}")
         for i in self.node["volume_attachments"]:
             if "ceph-ci-" in i["volume"]["name"]:
                 volume_attachments.append(i)
