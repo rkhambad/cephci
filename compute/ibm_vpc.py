@@ -132,7 +132,6 @@ class CephVMNodeIBM:
 
         if node:
             self.node = node
-        print(f"node detail is {self.node}")
 
     # properties
 
