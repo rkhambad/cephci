@@ -397,14 +397,19 @@ def run(args):
 
     log_dna_config = get_cephci_config().get("log-dna", {})
 
-    if log_dna_config:
+    if True:
         options = {
-            "hostname": "Cephci",
-            "url": log_dna_config.get("url"),
+            "hostname": f"Cephci-{run_id}",
+            "url": "https://logs.au-syd.logging.cloud.ibm.com/logs/ingest",
             "index_meta": True,
             "tags": run_id,
+            "buf_retention_limit": 419430400,
+            "flush_limit": 2 * 1024 * 1024 * 100
         }
-        apiKey = log_dna_config.get("api-key")
+        # apiKey = log_dna_config.get("api-key")
+       # apiKey = "888957e861bc6881ffde234ec9957639"
+        apiKey = "cc16bcc2db7f0067c412424482a494e0"
+
         logdna_handler = logdna.LogDNAHandler(apiKey, options)
         root.addHandler(logdna_handler)
 
