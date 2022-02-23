@@ -196,6 +196,7 @@ class CephVMNodeIBM:
     @property
     def subnet(self) -> str:
         """Return the subnet information."""
+        print(f"self node detail is:{self.node['primary_network_interface']}")
         subnet_details = self.service.get_subnet(
             self.node["primary_network_interface"]["subnet"]["id"]
         )
