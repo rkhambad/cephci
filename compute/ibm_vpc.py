@@ -200,7 +200,7 @@ class CephVMNodeIBM:
         subnet_details = self.service.get_subnet(
             self.node["primary_network_interface"]["subnet"]["id"]
         )
-
+        print(f"subnet detail is:{subnet_details}")
         return subnet_details.get_result()["ipv4_cidr_block"]
 
     @property
