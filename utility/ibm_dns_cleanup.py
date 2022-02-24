@@ -73,7 +73,6 @@ def run(args: Dict):
         instance_name = [i["name"] for i in response["instances"]]
         print(instance_name)
 
-        print(f"\n {records['resource_records']}")
         for record in records["resource_records"]:
             if record["type"] == "A" and record["rdata"]["ip"] not in ip_address:
                 print(record['linked_ptr_record']['name'])
