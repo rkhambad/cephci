@@ -104,4 +104,4 @@ if __name__ == "__main__":
 #     except Exception:
 #         print("\nFailed to remove the orphan DNS record from IBM\n")
 #         rc = 1
-    sys.exit(rc)
+#     sys.exit(rc)
