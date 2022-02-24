@@ -95,13 +95,3 @@ def run(args: Dict):
 
         print("\nSuccessfully removed the orphan DNS record from IBM environment\n")
     return 0
-
-
-if __name__ == "__main__":
-#     try:
-#         arguments = docopt(doc)
-#         rc = run(arguments)
-#     except Exception:
-#         print("\nFailed to remove the orphan DNS record from IBM\n")
-#         rc = 1
-#     sys.exit(rc)
