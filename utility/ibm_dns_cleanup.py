@@ -71,20 +71,22 @@ def run(args: Dict):
 
         for record in records["resource_records"]:
             if record["type"] == "A" and record["rdata"]["ip"] not in ip_address:
-                if record.get("linked_ptr_record"):
-                    print(f"Deleting PTR record {record['linked_ptr_record']['name']}")
-                    dns_client.delete_resource_record(
-                        instance_id=instance_id,
-                        dnszone_id=dns_zone_id,
-                        record_id=record["linked_ptr_record"]["id"],
-                    )
+                print(record['linked_ptr_record']['name'])
+                print(record['name'])
+#                 if record.get("linked_ptr_record"):
+#                     print(f"Deleting PTR record {record['linked_ptr_record']['name']}")
+#                     dns_client.delete_resource_record(
+#                         instance_id=instance_id,
+#                         dnszone_id=dns_zone_id,
+#                         record_id=record["linked_ptr_record"]["id"],
+#                     )
 
-                print(f"Deleting Address record {record['name']}")
-                dns_client.delete_resource_record(
-                    instance_id=instance_id,
-                    dnszone_id=dns_zone_id,
-                    record_id=record["id"],
-                )
+#                 print(f"Deleting Address record {record['name']}")
+#                 dns_client.delete_resource_record(
+#                     instance_id=instance_id,
+#                     dnszone_id=dns_zone_id,
+#                     record_id=record["id"],
+#                 )
 
         print("\nSuccessfully removed the orphan DNS record from IBM environment\n")
     return 0
