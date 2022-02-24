@@ -59,14 +59,15 @@ def run(args: Dict):
             print(f"Failed to get dns records from zone: {ibm_cred['zone_name']}")
             return 1
         records = resource.get_result()
-        resp = ibmc_client.list_instances(vpc_name=ibm_cred["vpc_name"])
+        resp = ibmc_client.list_instances(limit=100, vpc_name=ibm_cred["vpc_name"])
         if resp.get_status_code() != 200:
             print("Failed to retrieve instances")
             return 1
         response = resp.get_result()
         print(response)
-        print(len(response["instances"]))
-        print(response["total_count"])
+        
+        print(f"len(response['instances']) : {len(response['instances'])}")
+        print(f"response['total_count'] : {response['total_count']}")
         ip_address = [
             i["primary_network_interface"]["primary_ipv4_address"]
             for i in response["instances"]
