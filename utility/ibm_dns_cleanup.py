@@ -96,3 +96,8 @@ def run(args: Dict):
 
         print("\nSuccessfully removed the orphan DNS record from IBM environment\n")
     return 0
+
+
+if __name__ == "__main__":
+    arguments = docopt(doc)
+    rc = run(arguments)
