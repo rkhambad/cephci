@@ -60,6 +60,7 @@ def run(args: Dict):
             return 1
         records = resource.get_result()
         limit = int(len(records["resource_records"]) + 100)
+        print(limit)
         resp = ibmc_client.list_instances(limit=limit, vpc_name=ibm_cred["vpc_name"])
         if resp.get_status_code() != 200:
             print("Failed to retrieve instances")
