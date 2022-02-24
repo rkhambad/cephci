@@ -65,6 +65,8 @@ def run(args: Dict):
             return 1
         response = resp.get_result()
         print(response)
+        print(len(response["instances"]))
+        print(response["total_count"])
         ip_address = [
             i["primary_network_interface"]["primary_ipv4_address"]
             for i in response["instances"]
