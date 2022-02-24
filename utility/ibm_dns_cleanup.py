@@ -69,6 +69,9 @@ def run(args: Dict):
             i["primary_network_interface"]["primary_ipv4_address"]
             for i in response["instances"]
         ]
+        print(ip_address)
+        instance_name = [i["name"] for i in response["instances"]]
+        print(instance_name)
 
         print(f"\n {records['resource_records']}")
         for record in records["resource_records"]:
