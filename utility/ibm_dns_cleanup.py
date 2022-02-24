@@ -59,7 +59,8 @@ def run(args: Dict):
             print(f"Failed to get dns records from zone: {ibm_cred['zone_name']}")
             return 1
         records = resource.get_result()
-        resp = ibmc_client.list_instances()
+        limit = int(len(records["resource_records"]) + 100)
+        resp = ibmc_client.list_instances(limit=limit, vpc_name=ibm_cred["vpc_name"])
         if resp.get_status_code() != 200:
             print("Failed to retrieve instances")
             return 1
