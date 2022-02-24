@@ -64,11 +64,13 @@ def run(args: Dict):
             print("Failed to retrieve instances")
             return 1
         response = resp.get_result()
+        print(response)
         ip_address = [
             i["primary_network_interface"]["primary_ipv4_address"]
             for i in response["instances"]
         ]
 
+        print(f"\n {records["resource_records"]}")
         for record in records["resource_records"]:
             if record["type"] == "A" and record["rdata"]["ip"] not in ip_address:
                 print(record['linked_ptr_record']['name'])
