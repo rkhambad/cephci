@@ -60,7 +60,7 @@ def run(args: Dict):
             print(f"Failed to get dns records from zone: {ibm_cred['zone_name']}")
             return 1
         records = resource.get_result()
-        resp = ibmc_client.list_instances(limit=10, vpc_name=ibm_cred["vpc_name"])
+        resp = ibmc_client.list_instances(limit=7, vpc_name=ibm_cred["vpc_name"])
         if resp.get_status_code() != 200:
             print("Failed to retrieve instances")
             return 1
@@ -90,7 +90,7 @@ def run(args: Dict):
         print(instance_name)
 
         for record in records["resource_records"]:
-            if record["type"] == "A" and not record['name'].startswith("ceph-qe"):
+            if record["type"] == "A" and record["rdata"]["ip"] not in ip_address and not record['name'].startswith("ceph-qe"):
                 print(record['linked_ptr_record']['name'])
                 print(record['name'])
 #                  and record["rdata"]["ip"] not in ip_address
