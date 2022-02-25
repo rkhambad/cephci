@@ -90,7 +90,7 @@ def run(args: Dict):
         print(instance_name)
 
         for record in records["resource_records"]:
-            if record["type"] == "A" and record["rdata"]["ip"] not in ip_address and not record['name'].startswith("ceph-ge"):
+            if record["type"] == "A" and not record['name'].startswith("ceph-ge"):
                 print(record['linked_ptr_record']['name'])
                 print(record['name'])
 #                 if record.get("linked_ptr_record"):
