@@ -66,7 +66,7 @@ def run(args: Dict):
             return 1
         response = resp.get_result()
         print(response)
-        if "next" not in response.keys():
+        if "next" in response.keys():
             for i in range(0, (math.ceil(response["total_count"]/response["limit"]))):
                 start = response["next"]["href"].split("start=")[-1]
                 list_instance = ibmc_client.list_instances(start=start, vpc_name=ibm_cred["vpc_name"])
