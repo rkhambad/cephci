@@ -60,7 +60,7 @@ def run(args: Dict):
             print(f"Failed to get dns records from zone: {ibm_cred['zone_name']}")
             return 1
         records = resource.get_result()
-        resp = ibmc_client.list_instances(vpc_name=ibm_cred["vpc_name"])
+        resp = ibmc_client.list_instances(limit=7, vpc_name=ibm_cred["vpc_name"])
         if resp.get_status_code() != 200:
             print("Failed to retrieve instances")
             return 1
@@ -69,7 +69,7 @@ def run(args: Dict):
         if "next" in resp.get_result().keys():
             start = resp.get_result()["next"]["href"].split("start=")[-1]
             for i in range(1, (math.ceil(resp.get_result()["total_count"] / resp.get_result()["limit"]))):
-                list_inst = ibmc_client.list_instances(start=start, vpc_name=ibm_cred["vpc_name"])
+                list_inst = ibmc_client.list_instances(start=start, limit=7, vpc_name=ibm_cred["vpc_name"])
                 if list_inst.get_status_code() != 200:
                     print("Failed to retrieve instances")
                     return 1
@@ -85,7 +85,7 @@ def run(args: Dict):
         ip_address = [i["primary_network_interface"]["primary_ipv4_address"] for i in instances]
 
         for record in records["resource_records"]:
-            if record["type"] == "A" and record["rdata"]["ip"] not in ip_address and not record['name'].startswith("ceph-qe"):
+            if record["type"] == "A" and record["rdata"]["ip"] not in ip_address:
                 if record.get("linked_ptr_record"):
                     print(f"Deleting PTR record {record['linked_ptr_record']['name']}")
 #                     dns_client.delete_resource_record(
