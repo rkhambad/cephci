@@ -65,7 +65,6 @@ def run(args: Dict):
             print("Failed to retrieve instances")
             return 1
         instances = resp.get_result()["instances"]
-#         print(response)
         
         if "next" in resp.get_result().keys():
             start = resp.get_result()["next"]["href"].split("start=")[-1]
@@ -74,11 +73,10 @@ def run(args: Dict):
                 if list_inst.get_status_code() != 200:
                     print("Failed to retrieve instances")
                     return 1
-                list_instances = list_inst.get_result()
-#                 print(f"instance {list_instances}")
-                instances += list_instances["instances"]
-                if "next" in list_instances.keys():
-                    start = list_instances["next"]["href"].split("start=")[-1]
+                list_instances = list_inst.get_result()["instances"]
+                instances += list_instances
+                if "next" in list_inst.get_result().keys():
+                    start = list_inst.get_result()["next"]["href"].split("start=")[-1]
                 
         if len(instances) != resp.get_result()["total_count"]:
             print(f"len(resp.get_result()['instances']) : {len(resp.get_result()['instances'])}")
@@ -87,6 +85,7 @@ def run(args: Dict):
             return 1
 
         ip_address = [i["primary_network_interface"]["primary_ipv4_address"] for i in instances]
+        print(ip_address)
 
         for record in records["resource_records"]:
             if record["type"] == "A" and record["rdata"]["ip"] not in ip_address and not record['name'].startswith("ceph-qe"):
