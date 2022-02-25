@@ -69,7 +69,7 @@ def run(args: Dict):
         if "next" in response.keys():
             start = response["next"]["href"].split("start=")[-1]
             for i in range(1, (math.ceil(response["total_count"]/response["limit"]))):
-                list_instance = ibmc_client.list_instances(start=start, limit=10, vpc_name=ibm_cred["vpc_name"])
+                list_instance = ibmc_client.list_instances(start=start, limit=7, vpc_name=ibm_cred["vpc_name"])
                 if list_instance.get_status_code() != 200:
                     print("Failed to retrieve instances")
                     return 1
@@ -90,9 +90,10 @@ def run(args: Dict):
         print(instance_name)
 
         for record in records["resource_records"]:
-            if record["type"] == "A" and not record['name'].startswith("ceph-ge"):
+            if record["type"] == "A" and not record['name'].startswith("ceph-qe"):
                 print(record['linked_ptr_record']['name'])
                 print(record['name'])
+#                  and record["rdata"]["ip"] not in ip_address
 #                 if record.get("linked_ptr_record"):
 #                     print(f"Deleting PTR record {record['linked_ptr_record']['name']}")
 #                     dns_client.delete_resource_record(
