@@ -77,7 +77,7 @@ def run(args: Dict):
                 list_instances = list_inst.get_result()
 #                 print(f"instance {list_instances}")
                 instances += list_instances["instances"]
-                if "next" in instances.keys():
+                if "next" in list_instances.keys():
                     start = list_instances["next"]["href"].split("start=")[-1]
                 
         if len(instances) != resp.get_result()["total_count"]:
