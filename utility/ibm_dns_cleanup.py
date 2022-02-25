@@ -64,30 +64,29 @@ def run(args: Dict):
         if resp.get_status_code() != 200:
             print("Failed to retrieve instances")
             return 1
-        response = resp.get_result()
+        instances = resp.get_result()["instances"]
         print(response)
+        
         if "next" in response.keys():
             start = response["next"]["href"].split("start=")[-1]
-            for i in range(1, (math.ceil(response["total_count"]/response["limit"]))):
-                list_instance = ibmc_client.list_instances(start=start, limit=7, vpc_name=ibm_cred["vpc_name"])
-                if list_instance.get_status_code() != 200:
+            for i in range(1, (math.ceil(resp.get_result()["total_count"]/resp.get_result()["limit"]))):
+                list_inst = ibmc_client.list_instances(start=start, limit=7, vpc_name=ibm_cred["vpc_name"])
+                if list_inst.get_status_code() != 200:
                     print("Failed to retrieve instances")
                     return 1
-                instances = list_instance.get_result()
-                print(f"instance {instances}")
-                response["instances"] += instances["instances"]
+                list_instances = list_inst.get_result()
+#                 print(f"instance {list_instances}")
+                instances += list_instances["instances"]
                 if "next" in instances.keys():
-                    start = instances["next"]["href"].split("start=")[-1]
+                    start = list_instances["next"]["href"].split("start=")[-1]
                 
-        print(f"len(response['instances']) : {len(response['instances'])}")
-        print(f"response['total_count'] : {response['total_count']}")
-        ip_address = [
-            i["primary_network_interface"]["primary_ipv4_address"]
-            for i in response["instances"]
-        ]
-        print(ip_address)
-        instance_name = [i["name"] for i in response["instances"]]
-        print(instance_name)
+        if len(instances) != resp.get_result()["total_count"]:
+            print(f"len(response['instances']) : {len(response['instances'])}")
+            print(f"response['total_count'] : {response['total_count']}")
+            print("Unable to list all the instances")
+            return 1
+
+        ip_address = [i["primary_network_interface"]["primary_ipv4_address"] for i in instances]
 
         for record in records["resource_records"]:
             if record["type"] == "A" and record["rdata"]["ip"] not in ip_address and not record['name'].startswith("ceph-qe"):
