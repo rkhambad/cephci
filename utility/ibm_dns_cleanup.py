@@ -1,6 +1,7 @@
 """
     Utility to cleanup orphan DNS record from IBM environment
 """
+import math
 import sys
 from typing import Dict
 
@@ -59,13 +60,22 @@ def run(args: Dict):
             print(f"Failed to get dns records from zone: {ibm_cred['zone_name']}")
             return 1
         records = resource.get_result()
-        resp = ibmc_client.list_instances(limit=100, vpc_name=ibm_cred["vpc_name"])
+        resp = ibmc_client.list_instances(vpc_name=ibm_cred["vpc_name"])
         if resp.get_status_code() != 200:
             print("Failed to retrieve instances")
             return 1
         response = resp.get_result()
         print(response)
-        
+        if "next" not in response.keys():
+            for i in range(0, (math.ceil(resp["total_count"]/resp["limit"]))):
+                start = response["href"].split("start=")[-1]
+                list_instance = ibmc_client.list_instances(start=start, vpc_name=ibm_cred["vpc_name"])
+                if list_instance.get_status_code() != 200:
+                    print("Failed to retrieve instances")
+                    return 1
+                instances = list_instance.get_result()
+                response["instances"] += list_instance["instances"]
+                
         print(f"len(response['instances']) : {len(response['instances'])}")
         print(f"response['total_count'] : {response['total_count']}")
         ip_address = [
@@ -77,7 +87,7 @@ def run(args: Dict):
         print(instance_name)
 
         for record in records["resource_records"]:
-            if record["type"] == "A" and record["rdata"]["ip"] not in ip_address:
+            if record["type"] == "A" and record["rdata"]["ip"] not in ip_address and not record['name'].startswith("ceph-ge"):
                 print(record['linked_ptr_record']['name'])
                 print(record['name'])
 #                 if record.get("linked_ptr_record"):
