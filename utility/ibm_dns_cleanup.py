@@ -85,7 +85,7 @@ def run(args: Dict):
         ip_address = [i["primary_network_interface"]["primary_ipv4_address"] for i in instances]
 
         for record in records["resource_records"]:
-            if record["type"] == "A" and record["rdata"]["ip"] not in ip_address and not record['name'].startswith("ceph-qe"):
+            if ((record["type"] == "A") and (record["rdata"]["ip"] not in ip_address) and not (record['name'].startswith("ceph-qe"))):
                 if record.get("linked_ptr_record"):
                     print(f"Deleting PTR record {record['linked_ptr_record']['name']}")
 #                     dns_client.delete_resource_record(
