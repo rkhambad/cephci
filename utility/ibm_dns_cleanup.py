@@ -68,7 +68,7 @@ def run(args: Dict):
         print(response)
         if "next" not in response.keys():
             for i in range(0, (math.ceil(response["total_count"]/response["limit"]))):
-                start = response["href"].split("start=")[-1]
+                start = response["next"]["href"].split("start=")[-1]
                 list_instance = ibmc_client.list_instances(start=start, vpc_name=ibm_cred["vpc_name"])
                 if list_instance.get_status_code() != 200:
                     print("Failed to retrieve instances")
