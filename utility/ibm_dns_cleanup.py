@@ -65,10 +65,10 @@ def run(args: Dict):
             print("Failed to retrieve instances")
             return 1
         instances = resp.get_result()["instances"]
-        print(response)
+#         print(response)
         
-        if "next" in response.keys():
-            start = response["next"]["href"].split("start=")[-1]
+        if "next" in resp.get_result().keys():
+            start = resp.get_result()["next"]["href"].split("start=")[-1]
             for i in range(1, (math.ceil(resp.get_result()["total_count"]/resp.get_result()["limit"]))):
                 list_inst = ibmc_client.list_instances(start=start, limit=7, vpc_name=ibm_cred["vpc_name"])
                 if list_inst.get_status_code() != 200:
@@ -81,8 +81,8 @@ def run(args: Dict):
                     start = list_instances["next"]["href"].split("start=")[-1]
                 
         if len(instances) != resp.get_result()["total_count"]:
-            print(f"len(response['instances']) : {len(response['instances'])}")
-            print(f"response['total_count'] : {response['total_count']}")
+            print(f"len(resp.get_result()['instances']) : {len(resp.get_result()['instances'])}")
+            print(f"resp.get_result()['total_count'] : {resp.get_result()['total_count']}")
             print("Unable to list all the instances")
             return 1
 
