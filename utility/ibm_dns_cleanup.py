@@ -74,7 +74,7 @@ def run(args: Dict):
                     print("Failed to retrieve instances")
                     return 1
                 instances = list_instance.get_result()
-                response["instances"] += list_instance["instances"]
+                response["instances"] += instances["instances"]
                 
         print(f"len(response['instances']) : {len(response['instances'])}")
         print(f"response['total_count'] : {response['total_count']}")
