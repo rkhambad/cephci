@@ -60,16 +60,16 @@ def run(args: Dict):
             print(f"Failed to get dns records from zone: {ibm_cred['zone_name']}")
             return 1
         records = resource.get_result()
-        resp = ibmc_client.list_instances(limit=7, vpc_name=ibm_cred["vpc_name"])
+        resp = ibmc_client.list_instances(vpc_name=ibm_cred["vpc_name"])
         if resp.get_status_code() != 200:
             print("Failed to retrieve instances")
             return 1
         instances = resp.get_result()["instances"]
-        
+
         if "next" in resp.get_result().keys():
             start = resp.get_result()["next"]["href"].split("start=")[-1]
-            for i in range(1, (math.ceil(resp.get_result()["total_count"]/resp.get_result()["limit"]))):
-                list_inst = ibmc_client.list_instances(start=start, limit=7, vpc_name=ibm_cred["vpc_name"])
+            for i in range(1, (math.ceil(resp.get_result()["total_count"] / resp.get_result()["limit"]))):
+                list_inst = ibmc_client.list_instances(start=start, vpc_name=ibm_cred["vpc_name"])
                 if list_inst.get_status_code() != 200:
                     print("Failed to retrieve instances")
                     return 1
@@ -77,15 +77,12 @@ def run(args: Dict):
                 instances += list_instances
                 if "next" in list_inst.get_result().keys():
                     start = list_inst.get_result()["next"]["href"].split("start=")[-1]
-                
+
         if len(instances) != resp.get_result()["total_count"]:
-            print(f"len(resp.get_result()['instances']) : {len(resp.get_result()['instances'])}")
-            print(f"resp.get_result()['total_count'] : {resp.get_result()['total_count']}")
-            print("Unable to list all the instances")
+            print(f"Failed to list all the instances, total:{resp.get_result()['total_count']} listed:{len(instances)}")
             return 1
 
         ip_address = [i["primary_network_interface"]["primary_ipv4_address"] for i in instances]
-        print(ip_address)
 
         for record in records["resource_records"]:
             if record["type"] == "A" and record["rdata"]["ip"] not in ip_address and not record['name'].startswith("ceph-qe"):
@@ -109,5 +106,10 @@ def run(args: Dict):
 
 
 if __name__ == "__main__":
-    arguments = docopt(doc)
-    rc = run(arguments)
+    try:
+        arguments = docopt(doc)
+        rc = run(arguments)
+    except Exception:
+        print("\nFailed to remove the orphan DNS record from IBM\n")
+        rc = 1
+    sys.exit(rc)
