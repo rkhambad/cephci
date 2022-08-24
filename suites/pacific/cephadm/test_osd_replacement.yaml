@@ -1,0 +1,260 @@
+#===============================================================================================
+# Tier-level: 1
+# Test-Suite: test_osd_replacement.yaml
+# Test-Case:
+#      Bootstrap cluster with multiple admin nodes and apply-spec options.
+#      Deploy OSD and verify replace OSD functionality with adding new OSD.
+#
+# Cluster Configuration:
+#   cephci/conf/pacific/cephadm/tier-1_5node_cephadm_bootstrap.yaml
+#
+# Test steps:
+#   (1) Bootstrap cluster with options,
+#       - skip-monitoring-stack
+#       - orphan-initial-daemons
+#       - fsid : f64f341c-655d-11eb-8778-fa163e914bcc
+#       - initial-dashboard-user: admin123
+#       - initial-dashboard-password: admin@123,
+#       - registry-json: registry.json
+#       - apply-spec: <list of service specification containing multiple admin nodes, mon, mgr, osd and rgw deployment>
+#       - ssh-user: <ssh user name>
+#       - ssh-public-key: <path to the custom ssh public key file>
+#       - ssh-private-key: <path to the custom ssh private key file>
+#       - mon-ip: <monitor IP address: Required>
+#    (2) Apply OSD service
+#    (3) Run IOs
+#    (4) Remove OSD with --replace option
+#    (5) Add OSD and verify added OSD is added with replaced OSD ID
+#===============================================================================================
+tests:
+  - test:
+      name: Install ceph pre-requisites
+      desc: installation of ceph pre-requisites
+      module: install_prereq.py
+      abort-on-fail: true
+  - test:
+      name: Cephadm Bootstrap with apply-spec option.
+      desc: bootstrap with apply-spec option.
+      module: test_bootstrap.py
+      config:
+        command: bootstrap
+        base_cmd_args:
+          verbose: true
+        args:
+          registry-json: registry.redhat.io
+          custom_image: true
+          mon-ip: node1
+          fsid: f64f341c-655d-11eb-8778-fa163e914bcc
+          orphan-initial-daemons: true
+          ssh-user: cephuser
+          ssh-public-key: /home/cephuser/.ssh/id_rsa.pub # if ssh-public-key is provided then provide
+          ssh-private-key: /home/cephuser/.ssh/id_rsa # ssh-private-key also else validation fails
+          apply-spec:
+            - service_type: host
+              address: true
+              labels:
+                - admin
+                - mgr
+                - alertmanager
+              nodes:
+                - node1
+                - node2
+                - node3
+            - service_type: mon
+              placement:
+                nodes:
+                  - node1
+                  - node2
+                  - node3
+            - service_type: mgr
+              placement:
+                label: mgr
+            - service_type: prometheus
+              placement:
+                count: 1
+                nodes:
+                  - node1
+            - service_type: grafana
+              placement:
+                nodes:
+                  - node1
+            - service_type: alertmanager
+              placement:
+                count: 2
+                label: alertmanager
+            - service_type: node-exporter
+              placement:
+                host_pattern: "*"
+            - service_type: crash
+              placement:
+                host_pattern: "*"
+      destroy-cluster: false
+      abort-on-fail: true
+  - test:
+      name: RGW Service deployment
+      desc: RGW Service deployment
+      module: test_cephadm.py
+      polarion-id: CEPH-83574728
+      config:
+        steps:
+          - config:
+              command: apply_spec
+              service: orch
+              specs:
+                - service_type: rgw
+                  service_id: my-rgw
+                  placement:
+                    count_per_host: 2
+                    nodes:
+                      - node2
+                      - node3
+                  spec:
+                    rgw_frontend_port: 8080
+                    rgw_realm: east
+                    rgw_zone: india
+                  extra_container_args:
+                    - "--cpus=1"
+  - test:
+      name: Cephadm support for adding OSDs using spec file
+      desc: Add OSD services to node1 using spec file
+      module: test_cephadm.py
+      config:
+        steps:
+          - config:
+              command: apply_spec
+              service: orch
+              validate-spec-services: true
+              specs:
+                - service_type: osd
+                  service_id: first_node_osd
+                  placement:
+                    nodes:
+                      - node1
+                  spec:
+                    data_devices:
+                      paths:
+                        - /dev/vdb
+                        - /dev/vdc
+                        - /dev/vdd
+                        - /dev/vde
+      destroy-cluster: false
+      abort-on-fail: true
+  - test:
+      name: Remove OSD daemon for osd replacement using CLI
+      desc: Remove single OSD daemon from the cluster for osd replacement
+      module: test_osd.py
+      config:
+        command: replace
+        base_cmd_args:
+          verbose: true
+        pos_args:
+          - 2
+        args:
+          replace: true
+      destroy-cluster: false
+      abort-on-fail: true
+  - test:
+      name: Cephadm support for add OSDs using CLI
+      desc: Add osd on node1
+      module: test_daemon.py
+      polarion-id: CEPH-83574990
+      config:
+        command: add
+        service: osd
+        pos_args:
+          - "node1"
+          - "/dev/vdf"
+      destroy-cluster: false
+      abort-on-fail: true
+  - test:
+      name: verify OSD status
+      desc: verify OSD is up and running
+      module: test_osd.py
+      config:
+        command: info
+        base_cmd_args:
+          verbose: true
+        pos_args:
+          - 2
+        args:
+          format: json-pretty
+
+  # - test:
+  #     name: RGW Service deployment with spec
+  #     desc: Add RGW services using spec file
+  #     module: test_cephadm.py
+  #     polarion-id: CEPH-83574640
+  #     config:
+  #       steps:                # create realm, zone group and zone
+  #         - config:
+  #             command: shell
+  #             args:
+  #               - "radosgw-admin realm create --rgw-realm=east --default"
+  #         - config:
+  #             command: shell
+  #             args:
+  #               - "radosgw-admin zonegroup create --rgw-zonegroup=asia --master --default"
+  #         - config:
+  #             command: shell
+  #             args:
+  #               - "radosgw-admin zone create --rgw-zonegroup=asia --rgw-zone=india --master --default"
+  #         - config:
+  #             command: shell
+  #             args:
+  #               - "radosgw-admin period update --rgw-realm=east --commit"
+  #         - config:
+  #             command: apply_spec
+  #             service: orch
+  #             validate-spec-services: true
+  #             specs:
+  #               - service_type: rgw
+  #                 service_id: my-rgw
+  #                 placement:
+  #                   count_per_host: 2
+  #                   nodes:
+  #                     - node4
+  #                     - node3
+  #                 spec:
+  #                   rgw_frontend_port: 8080
+  #                   rgw_realm: east
+  #                   rgw_zone: india
+  # - test:
+  #     name: Configure client
+  #     desc: Configure client on node5
+  #     module: test_client.py
+  #     polarion-id:
+  #     config:
+  #       command: add
+  #       id: client.1                      # client Id (<type>.<Id>)
+  #       node: node5                       # client node
+  #       install_packages:
+  #         - ceph-common                   # install ceph common packages
+  #       copy_admin_keyring: true          # Copy admin keyring to node
+  #       store-keyring: true               # /etc/ceph/ceph.client.1.keyring
+  #       caps: # authorize client capabilities
+  #         mon: "allow *"
+  #         osd: "allow *"
+  #         mds: "allow *"
+  #         mgr: "allow *"
+  #     destroy-cluster: false
+  #     abort-on-fail: true
+  # - test:
+  #     name: Run IOs on the cluster
+  #     module: test_parallel.py
+  #     parallel:
+  #       - test:
+  #           config:
+  #             script-name: test_Mbuckets_with_Nobjects.py
+  #             config-file-name: test_Mbuckets_with_Nobjects.yaml
+  #             timeout: 300
+  #           desc: test to create "M" no of buckets and "N" no of objects
+  #           module: sanity_rgw.py
+  #           name: Test M buckets with N objects
+  #       - test:
+  #           name: rbd-io
+  #           module: rbd_faster_exports.py
+  #           config:
+  #             io-total: 100M
+  #           desc: Perform export during read/write,resizing,flattening,lock operations
+  #     desc: Running i/o's parallelly
+

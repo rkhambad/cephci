@@ -215,6 +215,74 @@ class OSD(ApplyMixin, Orch):
                 raise AssertionError("fail, OSD is present still after removing")
         LOG.info(f" OSD {osd_id} Removal is successfully")
 
+    def replace(self, config: Dict):
+        """
+        Execute the command ceph orch osd rm <OSD ID> --replace .
+
+        Args:
+            config (Dict): OSD Remove configuration parameters
+
+        Returns:
+          output, error   returned by the command.
+
+        Example::
+
+            config:
+                command: replace
+                base_cmd_args:
+                    verbose: true
+                pos_args:
+                    - 1
+                args:
+                    replace: true
+        """
+
+        base_cmd = ["ceph", "orch", "osd"]
+        if config.get("base_cmd_args"):
+            base_cmd.append(config_dict_to_string(config["base_cmd_args"]))
+        base_cmd.append("rm")
+        osd_id = config["pos_args"][0]
+        base_cmd.append(str(osd_id))
+        if config.get("args"):
+            base_cmd.append(config_dict_to_string(config["args"]))
+        self.shell(args=base_cmd)
+
+        check_osd_id_dict = {
+            "args": {"format": "json"},
+        }
+
+        while True:
+            # "ceph orch osd rm status -f json"
+            # condition
+            # continue loop if OSD_ID present
+            # if not exit the loop
+            out, _ = self.rm_status(check_osd_id_dict)
+
+            try:
+                status = json.loads(out)
+                for osd_id_ in status:
+                    if osd_id_["osd_id"] == osd_id:
+                        LOG.info(f"OSDs removal in progress: {osd_id_}")
+                        break
+                else:
+                    break
+                sleep(2)
+
+            except json.decoder.JSONDecodeError:
+                break
+
+        # validate OSD replace
+        out, verify = self.shell(
+            args=["ceph", "osd", "tree", "-f", "json"],
+        )
+        out = json.loads(out)
+        for id_ in out["nodes"]:
+            if id_["id"] == osd_id:
+                if id_["status"] == "destroyed":
+                    LOG.info(f" OSD {osd_id} removed successfully and Ready to replace")
+                    return
+        raise AssertionError("fail, OSD ID is not present")
+
     def out(self, config: Dict):
         """
         Execute the command ceph osd out.
@@ -236,3 +304,33 @@ class OSD(ApplyMixin, Orch):
         osd_id = config["pos_args"][0]
         base_cmd.append(str(osd_id))
         return self.shell(args=base_cmd)
+
+    def info(self, config: Dict):
+        """
+        Execute the command ceph osd info.
+        args:
+            config (Dict) : OSD info configuration parameters
+        Return:
+            output, error   returned by the command.
+        Example::
+            config:
+                command info
+                base_cmd_args:
+                    verbose: true
+                pos_args:
+                    - 0
+        """
+        base_cmd = ["ceph", "osd", "info"]
+        if config.get("base_cmd_args"):
+            base_cmd.append(config_dict_to_string(config["base_cmd_args"]))
+        osd_id = config["pos_args"][0]
+        base_cmd.append(str(osd_id))
+        if config.get("args"):
+            base_cmd.append(config_dict_to_string(config["args"]))
+        out, verify = self.shell(args=base_cmd)
+        out = json.loads(out)
+        if out["state"] == ["exists","up"]:
+            LOG.info(f" OSD {osd_id} status is up and running")
+            return
+        LOG.error("OSD ID Not found")
+        raise AssertionError("fail, OSD id does not exist")
