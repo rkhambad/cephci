@@ -260,3 +260,11 @@ tests:
       module: rbd_flatten_image_feature_disable.py
       name: Test to disable image feature when flatten operation is performed
       polarion-id: CEPH-9862
+
+  - test:
+      desc: Verify image feature disable on image having image meta set on it
+      config:
+        image_feature_name : deep-flatten
+      module: rbd_image_metadata_feature_disable.py
+      name: Test to verify image feature disable with image meta on it
+      polarion-id: CEPH-9864
